@@ -16,7 +16,7 @@ const scrapeResult = {
 // Async is from ES7, it provides asynchronous functionality
 // similar to promises, callbacks etc, the await keyword is 
 // used when a function has been declared async
-async function scrapeCraigsList(){
+async function scrapeJobHeader(){
     try{
         const htmlResult = await request.get(url);
 
@@ -30,13 +30,33 @@ async function scrapeCraigsList(){
 
         // Getting job titles
         $(".result-info").each((index, element) => {
-            console.log(
-                $(element).children('.result-title').text()
+            const resultTitle = $(element).children(".result-title");
+            const title = resultTitle.text();
+            const url = resultTitle.attr("href");
+            const datePosted = new Date(
+              $(element)
+                .children("time")
+                .attr("datetime")
             );
+            const hood = $(element)
+              .find(".result-hood")
+              .text();
+            const scrapeResult = { title, url, datePosted, hood };
+            scrapeResults.push(scrapeResult);
         });
+
+        return scrapeResults;
     } catch(err){
         console.error(err);
     }
+}
+
+async function scrapeDescription(jobsWithHeaders) {
+    return await Promise.all(
+        jobsWithHeaders.map(async job => {
+
+        })
+    )
 }
 
 // Method call for the scrapeCraigsList function
