@@ -5,13 +5,15 @@ const cheerio = require("cheerio");
 const url = "https://dublin.craigslist.org/search/jjj";
 
 // Example scrape result
-const scrapeResult = {
+const scrapeResultExample = {
     title: 'Teaching',
     description: 'Text about the job position',
     datePosted: '2019-08-06',
     url: 'https://dublin.craigslist.org/edu/d/teaching-job-opportunity-online/6950906081.html',
     compensation: '21-26 per hour'
 }
+
+const scrapeResults = [];
 
 // Async is from ES7, it provides asynchronous functionality
 // similar to promises, callbacks etc, the await keyword is 
@@ -54,9 +56,28 @@ async function scrapeJobHeader(){
 async function scrapeDescription(jobsWithHeaders) {
     return await Promise.all(
         jobsWithHeaders.map(async job => {
-
+            try{
+                const htmlResult = await request.get(job.url);
+                const $ = await cheerio.load(htmlResult);
+                $(".print-qrcode-container").remove();
+                job.description = $("#postingbody").text();
+                job.address = $("div.mapaddress").text();
+                const compensationText = $(".attrgroup")
+                    .children()
+                    .first()
+                    .text();
+                job.compensation = compensationText.replace("compensation: ", "");
+                return job;
+            } catch(error){
+                console.error(error);
+            }
         })
-    )
+    );
+}
+
+async function scrapeCraigsList() {
+    const jobsWithHeaders = await scrapeJobHeader();
+    const jobsFullData = await scrapeDescription(jobsWithHeaders);
 }
 
 // Method call for the scrapeCraigsList function
